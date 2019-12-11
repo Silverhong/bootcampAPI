@@ -2,6 +2,12 @@ const jwt = require("jsonwebtoken");
 const asyncHandler = require("./async");
 const ErrorResponse = require("../utils/errorResponse");
 const User = require("../Model/User");
+const dotenv = require("dotenv");
+
+//Require Dotenv
+dotenv.config({
+  path: "./Config/config.env"
+});
 
 //Protect route
 exports.protect = asyncHandler(async (req, res, next) => {
@@ -12,9 +18,6 @@ exports.protect = asyncHandler(async (req, res, next) => {
   ) {
     token = req.headers.authorization.split(" ")[1];
   }
-  // else if(req.cookies.token){
-  //     token = req.cookies.token
-  // }
   if (!token) {
     next(new ErrorResponse("Not authorize to access this route", 401));
   }
@@ -23,6 +26,27 @@ exports.protect = asyncHandler(async (req, res, next) => {
     req.user = await User.findById(decoded.id);
     next();
   } catch (err) {
-    next(new ErrorResponse("Not authorize to access this route", 401));
+    if (err.name == "JsonWebTokenError")
+      next(new ErrorResponse("Invalid Token", 400));
+    else {
+      next(new ErrorResponse(err.name, 401));
+    }
+  }
+});
+
+exports.protectAtlogin = asyncHandler(async (req, res, next) => {
+  let token;
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith("Bearer")
+  ) {
+    token = req.headers.authorization.split(" ")[1];
+  }
+  console.log(process.env.BEARER_HEADER);
+  console.log(token);
+  if (token != process.env.BEARER_HEADER) {
+    next(new ErrorResponse("Invalid Token", 400));
+  } else {
+    next();
   }
 });

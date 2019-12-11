@@ -3,6 +3,7 @@ const dotenv = require("dotenv");
 const app = express();
 const errorHandler = require("./Middleware/error");
 const connectDB = require("./Config/db");
+const AccessControl = require("./Authorization/accesscontrol");
 
 //Require dotenv
 dotenv.config({
@@ -13,21 +14,28 @@ dotenv.config({
 const PORT = process.env.PORT;
 
 //Route Files
-const student = require("./Route/bootcamps");
-const auth = require("./Route/auth");
+const authentication = require("./Route/authentication");
+const user = require("./Route/user");
 
 //Body parser
 app.use(express.json());
 
 //Mount Route
-app.use("/api/v1/bootcamps", student);
-app.use("/api/v1/auth", auth);
+app.use("/api/v1/user", user);
+app.use("/api/v1/authentication", authentication);
 app.use(errorHandler);
 
+// const permission = ac.can("admin").createOwn("user");
+// if (permission.granted) {
+//   console.log("granted");
+// }
 //Connect to database
-connectDB();
-
-const server = app.listen(PORT, () => console.log(`Listening on port ${PORT}`));
+//connectDB();
+const server = app.listen(PORT, () => {
+  //const accessControl = AccessControl;
+  console.log(AccessControl);
+  console.log(`Listening on port ${PORT}`);
+});
 
 //Handle unhandled promise rejections
 process.on("unhandledRejection", (err, promise) => {
